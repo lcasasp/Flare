@@ -2,7 +2,7 @@ import json
 import requests
 import os
 from newsapi import NewsApiClient
-from flask import Flask, current_app, request
+from flask import Flask, current_app, request, render_template
 from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
@@ -38,6 +38,27 @@ es = Elasticsearch(
     verify_certs=False,
 )
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/query', methods=['POST'])
+def query():
+    search_query = request.form['search_query']
+    # Note, to change the query parameters, change the query dictionary.
+    query = {
+        "match": {
+            "content": search_query,
+        }
+    }
+    # Execute the search query
+    es_result = es.search(index="articles", query=query)
+    article_ids = [hit['_source']['title'] for hit in es_result['hits']['hits']]
+    # Fetch the articles from the database
+    articles = News.query.filter(News.title.in_(article_ids)).all()
+    results = {"news": [article.serialize() for article in articles]}
+    return render_template('results.html', results=results)
+
 """
 Helper function for the "/" index route
 This function indexes the data from the database into
@@ -46,6 +67,8 @@ an elasticsearch index using the mapping provided.
 def index_articles():
     # Create an Elasticsearch index
     index_name = "articles"
+    if es.indices.exists(index=index_name):
+        es.indices.delete(index=index_name)
     if not es.indices.exists(index=index_name):
         es.indices.create(index=index_name)
 
@@ -95,7 +118,7 @@ def success_response(data, code=200):
 def failure_response(message, code=404):
     return json.dumps({"error": message}), code
 
-"""Endpoint: /
+"""Endpoint: /add
 HTTP Method: GET
 
 Access: Public
@@ -112,8 +135,8 @@ Response:
 Status Code: 200 OK
 Content: JSON object with the following fields:
     "message": A success message indicating that all data has been added."""
-@app.route('/')
-def index():
+@app.route('/add')
+def addData():
     db.session.query(News).delete()
     db.session.commit()
     # Make API request to get JSON data
@@ -151,36 +174,6 @@ def index():
 @app.route("/news")
 def get_news():
     return success_response({"news": [c.serialize() for c in News.query.all()]})
-
-"""
-Endpoint: /query
-HTTP Method: GET
-
-Response:
-    Success response (HTTP status code 200): a JSON object containing the matching news articles. The response format should be as follows:
-    If there are no matching news articles, the response should be an empty array [].
-
-Error responses:
-    None
-
-Functionality:
-    Executes a search query for articles containing the term "energy" in the content field of the Elasticsearch index.
-    Returns a JSON object containing the matching news articles.
-"""
-@app.route("/query")
-def query():
-    # Note, to change the query parameters, change the query dictionary.
-    query = {
-        "match": {
-            "content": "energy",
-            "content": "climate"
-        }
-    }
-
-    # Execute the search query
-    results = es.search(index="articles", query=query)
-    
-    return success_response({"news": [hit['_source']['source']['name'] for hit in results['hits']['hits']]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

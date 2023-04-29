@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Search Results</title>
+</head>
+<body>
+	<h1>Search Results:</h1>
+	{% if results %}
+		{% for hit in results['news'] %}
+			<h2>{{ hit }}</h2>
+		{% endfor %}
+	{% else %}
+		<p>No results found.</p>
+	{% endif %}
+</body>
+</html>
