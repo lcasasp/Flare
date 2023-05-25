@@ -59,6 +59,65 @@ def query():
     results = {"news": [article.serialize() for article in articles]}
     return render_template('results.html', results=results)
 
+
+def success_response(data, code=200):
+    return json.dumps(data), code
+
+def failure_response(message, code=404):
+    return json.dumps({"error": message}), code
+
+"""Endpoint: /add
+HTTP Method: GET
+Access: Public
+Functionality:
+    This route is responsible for updating the database with the latest news articles based on the search query.
+    It fetches JSON data from the News API using the get_everything() method provided by the newsapi object.
+    Then it loops through the articles and adds or updates them in the database using the News model.
+    After updating the database, it calls the index_articles() function to index the newly added data into Elasticsearch.
+    It returns a success response message if all data has been added.
+Status Code: 200 OK
+Content: JSON object with the following fields:
+    "message": A success message indicating that all data has been added."""
+@app.route('/add')
+def addData():
+    db.session.query(News).delete()
+    db.session.commit()
+    # Make API request to get JSON data
+    data = newsapi.get_everything(q=keys,
+                                  language='en',
+                                  sort_by='popularity')
+
+    # Loop through articles and add/update them in the database
+    for article_data in data['articles']:
+        # check if an article with the same URL already exists
+        if db.session.query(News).filter_by(url=article_data['url']).first():
+            print(f"Article with URL {article_data['url']} already exists in database.")
+            continue
+
+        # Create new article if it doesn't exist in the database
+        article = News(
+            status=data['status'],
+            total_results=data['totalResults'],
+            source_id=article_data['source']['id'],
+            source_name=article_data['source']['name'],
+            author=article_data['author'],
+            title=article_data['title'],
+            description=article_data['description'],
+            url=article_data['url'],
+            url_to_image=article_data['urlToImage'],
+            published_at=article_data['publishedAt'],
+            content=article_data['content']
+        )
+        db.session.add(article)
+    db.session.commit()
+
+    index_articles()
+    return success_response("added all data.")
+
+@app.route("/news")
+def get_news():
+    return success_response({"news": [c.serialize() for c in News.query.all()]})
+
 """
 Helper function for the "/" index route
 This function indexes the data from the database into
@@ -111,69 +170,6 @@ def index_articles():
         except Exception as e:
             current_app.logger.error(f"Error indexing document {article.id}: {e}")
     es.indices.refresh(index=index_name)
-
-def success_response(data, code=200):
-    return json.dumps(data), code
-
-def failure_response(message, code=404):
-    return json.dumps({"error": message}), code
-
-"""Endpoint: /add
-HTTP Method: GET
-
-Access: Public
-Functionality:
-    This route is responsible for updating the database with the latest news articles based on the search query.
-    It fetches JSON data from the News API using the get_everything() method provided by the newsapi object.
-    Then it loops through the articles and adds or updates them in the database using the News model.
-    After updating the database, it calls the index_articles() function to index the newly added data into Elasticsearch.
-    It returns a success response message if all data has been added.
-    Request Parameters:
-        None
-Response:
-
-Status Code: 200 OK
-Content: JSON object with the following fields:
-    "message": A success message indicating that all data has been added."""
-@app.route('/add')
-def addData():
-    db.session.query(News).delete()
-    db.session.commit()
-    # Make API request to get JSON data
-    data = newsapi.get_everything(q=keys,
-                                  language='en',
-                                  sort_by='popularity')
-
-    # Loop through articles and add/update them in the database
-    for article_data in data['articles']:
-        # check if an article with the same URL already exists
-        if db.session.query(News).filter_by(url=article_data['url']).first():
-            print(f"Article with URL {article_data['url']} already exists in database.")
-            continue
-
-        # Create new article if it doesn't exist in the database
-        article = News(
-            status=data['status'],
-            total_results=data['totalResults'],
-            source_id=article_data['source']['id'],
-            source_name=article_data['source']['name'],
-            author=article_data['author'],
-            title=article_data['title'],
-            description=article_data['description'],
-            url=article_data['url'],
-            url_to_image=article_data['urlToImage'],
-            published_at=article_data['publishedAt'],
-            content=article_data['content']
-        )
-        db.session.add(article)
-    db.session.commit()
-
-    index_articles()
-    return success_response("added all data.")
-
-@app.route("/news")
-def get_news():
-    return success_response({"news": [c.serialize() for c in News.query.all()]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

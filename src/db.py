@@ -33,7 +33,8 @@ class News(db.Model):
         }
     
 
-    def __init__(self, status, total_results, source_id, source_name, author, title, description, url, url_to_image, published_at, content):
+    def __init__(self, status, total_results, source_id, source_name, author,
+     title, description, url, url_to_image, published_at, content):
         self.status = status
         self.total_results = total_results
         self.source_id = source_id
