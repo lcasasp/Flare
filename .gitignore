@@ -1,3 +1,5 @@
 /.env
 /README.md
 /venv
+/__pycache__
+/instance
