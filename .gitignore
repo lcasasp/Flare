@@ -3,3 +3,4 @@
 /venv
 /src/__pycache__
 /src/instance
+/src/results.json

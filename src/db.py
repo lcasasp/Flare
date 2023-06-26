@@ -32,7 +32,6 @@ class News(db.Model):
             "content": self.content
         }
     
-
     def __init__(self, status, total_results, source_id, source_name, author,
      title, description, url, url_to_image, published_at, content):
         self.status = status
@@ -46,3 +45,19 @@ class News(db.Model):
         self.url_to_image = url_to_image
         self.published_at = published_at
         self.content = content
+
+
+class Urls(db.Model):
+    __tablename__ = 'urls'
+
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "url": self.url,
+        }
+    
+    def __init__(self, url):
+        self.url = url
