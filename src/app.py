@@ -62,6 +62,27 @@ def addData():
     #TODO Get data in results.json and populate News db
     with open('results.json') as f:
         data = json.load(f)
+    # Loop through articles and add/update them in the database
+    for article_data in data['Results']:
+        if db.session.query(News).filter_by(url=article_data['url']).first():
+            print(f"Article with URL {article_data['url']} already exists in database.")
+            continue
+        # Create new article if it doesn't exist in the database
+        article = News(
+            source_domain=article_data['source_domain'],
+            author=', '.join(article_data.get('authors', [])),
+            title=article_data['title'],
+            description=article_data['description'],
+            url=article_data['url'],
+            url_to_image=article_data['image_url'],
+            published_at=article_data['date_publish'],
+            content=article_data['maintext']
+        )
+        db.session.add(article)
+    db.session.commit()
+    index_articles()
+    return success_response("added all data.")
+
 
 
 """
@@ -80,13 +101,8 @@ def index_articles():
     # Define the mapping for your data to be indexed
     mapping = {
         "properties": {
-            "source": {
-                "properties": {
-                    "id": {"type": "keyword"},
-                    "name": {"type": "keyword"}
-                }
-            },
-            "author": {"type": "keyword"},
+            "source_domain": {"type": "keyword"},
+            "authors": {"type": "keyword"},
             "title": {"type": "keyword"},
             "description": {"type": "text"},
             #Note, URL not referenced for indexing, and should be returned
@@ -100,10 +116,7 @@ def index_articles():
     for article in News.query.all():
         # Create a document to index
         doc = {
-            "source": {
-                "id": article.source_id,
-                "name": article.source_name,
-            },
+            "source": article.source_domain,
             "author": article.author,
             "title": article.title,
             "description": article.description,
@@ -178,7 +191,7 @@ def addNewsUrl():
         url = Urls(     
             url=article_data['url'],
         )
-        db.session.add(article)
+        db.session.add(url)
     db.session.commit()
 
     

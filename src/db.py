@@ -6,10 +6,7 @@ class News(db.Model):
     __tablename__ = 'news'
 
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String)
-    total_results = db.Column(db.Integer)
-    source_id = db.Column(db.String)
-    source_name = db.Column(db.String)
+    source_domain = db.Column(db.String)
     author = db.Column(db.String)
     title = db.Column(db.String)
     description = db.Column(db.String)
@@ -21,8 +18,7 @@ class News(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "source_id": self.source_id,
-            "source_name": self.source_name,
+            "source_domain": self.source_domain,
             "author": self.author,
             "title": self.title,
             "description": self.description,
@@ -32,12 +28,9 @@ class News(db.Model):
             "content": self.content
         }
     
-    def __init__(self, status, total_results, source_id, source_name, author,
+    def __init__(self, source_domain, author,
      title, description, url, url_to_image, published_at, content):
-        self.status = status
-        self.total_results = total_results
-        self.source_id = source_id
-        self.source_name = source_name
+        self.source_domain = source_domain
         self.author = author
         self.title = title
         self.description = description
