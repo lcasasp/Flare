@@ -84,7 +84,6 @@ def addData():
     return success_response("added all data.")
 
 
-
 """
 Helper function for the "/" index route
 This function indexes the data from the database into
