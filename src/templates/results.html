@@ -7,9 +7,11 @@
 	<h1>Search Results:</h1>
 	{% if results %}
 		{% for hit in results['news'] %}
-			<h1>{{ hit['source_domain'] }}</h1>
+			<h1>{{ hit['title'] }}</h1>
 			<h3>{{ hit['url'] }}</h3>
+			<img src="{{ hit['url_to_image'] }}">
 			<p>{{ hit['content'] }}</h2>
+			
 		{% endfor %}
 	{% else %}
 		<p>No results found.</p>

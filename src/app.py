@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from db import News, Urls, db
+import constants
 
 API_KEY = os.environ.get("API_KEY", None)
 
@@ -143,7 +144,7 @@ def scrape_google_scholar_metadata():
     base_url = "https://scholar.google.com"
     metadata = []
 
-    for page in range(5):
+    for page in range(constants.GOOGLE_SCHOLAR_PAGE_DEPTH):
         query_url = f"{base_url}/scholar?q=energy 'climate change'&start={page*10}&scisbd=1"
         response = requests.get(query_url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -180,18 +181,26 @@ def addNewsUrl():
                                 sort_by='popularity')
 
     # Loop through articles and add/update them in the database
-    for article_data in data['articles']:
-        # check if an article with the same URL already exists
-        if db.session.query(News).filter_by(url=article_data['url']).first():
-            print(f"Article with URL {article_data['url']} already exists in database.")
-            continue
+    pages = data['totalResults'] // 100 + 1
+    if pages > constants.NEWS_API_PAGE_DEPTH:
+        pages = constants.NEWS_API_PAGE_DEPTH
+    for page in range(1, pages):
+        data = newsapi.get_everything(q=keys,
+                                language='en',
+                                sort_by='popularity',
+                                page=page)
+        for article_data in data['articles']:
+            # check if an article with the same URL already exists
+            if db.session.query(News).filter_by(url=article_data['url']).first():
+                print(f"Article with URL {article_data['url']} already exists in database.")
+                continue
 
-        # Create new article if it doesn't exist in the database
-        url = Urls(     
-            url=article_data['url'],
-        )
-        db.session.add(url)
-    db.session.commit()
+            # Create new article if it doesn't exist in the database
+            url = Urls(     
+                url=article_data['url'],
+            )
+            db.session.add(url)
+        db.session.commit()
 
     
 @app.route("/news")

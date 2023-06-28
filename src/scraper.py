@@ -14,7 +14,8 @@ class DateTimeEncoder(json.JSONEncoder):
 
         return super().default(o)
 
-
+#NOTE, SCRAPING EFFICIENCY:
+    507/946 articles scraped succesfully
 def scrape_all_urls_and_write_json():
     #delete current results.json file
     with open('results.json', 'w') as f:
