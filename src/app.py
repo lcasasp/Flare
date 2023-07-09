@@ -2,7 +2,8 @@ import json
 import requests
 import os
 from newsapi import NewsApiClient
-from flask import Flask, current_app, request, render_template
+from flask import Flask, current_app, request, render_template, Response
+from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 # Load environment variables from .env file
@@ -22,6 +23,8 @@ keys = "Energy 'climate'"
 newsapi = NewsApiClient(api_key=API_KEY)
 
 app = Flask(__name__)
+CORS(app)
+
 db_filename = "news.db"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///%s" % db_filename
@@ -39,10 +42,6 @@ es = Elasticsearch(
     basic_auth=('elastic', ELASTIC_PW),
     verify_certs=False,
 )
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 def success_response(data, code=200):
     return json.dumps(data), code
@@ -205,18 +204,26 @@ def addNewsUrl():
     
 @app.route("/news")
 def get_news():
-    return success_response({"news": [c.serialize() for c in News.query.all()]})
+    return Response(json.dumps({"news": [c.serialize() for c in News.query.all()]}),200)
 @app.route("/urls")
 def get_urls():
-    return success_response({"urls": [c.serialize() for c in Urls.query.all()]})
+    return Response(json.dumps({"urls": [c.serialize() for c in Urls.query.all()]}), 200)
 
 @app.route('/query', methods=['POST'])
 def query():
-    search_query = request.form['search_query']
-    # Note, to change the query parameters, change the query dictionary.
+    search_query = request.json['search_query']
+    # Split the search query into individual words
+    search_terms = search_query.split()
+    
+    # Create a list of must match queries for each term
+    must_queries = []
+    for term in search_terms:
+        must_queries.append({"match": {"content": term}})
+    
+    # Create the bool query with multiple must clauses
     query = {
-        "match": {
-            "content": search_query,
+        "bool": {
+            "must": must_queries
         }
     }
     # Execute the search query
@@ -224,8 +231,10 @@ def query():
     article_ids = [hit['_source']['title'] for hit in es_result['hits']['hits']]
     # Fetch the articles from the database
     articles = News.query.filter(News.title.in_(article_ids)).all()
-    results = {"news": [article.serialize() for article in articles]}
-    return render_template('results.html', results=results)
+    response = Response(json.dumps({"news": [article.serialize() for article in articles]}), 200)
+    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173' 
+
+    return response
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
