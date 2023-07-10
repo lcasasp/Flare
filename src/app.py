@@ -212,18 +212,10 @@ def get_urls():
 @app.route('/query', methods=['POST'])
 def query():
     search_query = request.json['search_query']
-    # Split the search query into individual words
-    search_terms = search_query.split()
-    
-    # Create a list of must match queries for each term
-    must_queries = []
-    for term in search_terms:
-        must_queries.append({"match": {"content": term}})
-    
-    # Create the bool query with multiple must clauses
+    # Note, to change the query parameters, change the query dictionary.
     query = {
-        "bool": {
-            "must": must_queries
+        "match": {
+            "content": search_query,
         }
     }
     # Execute the search query

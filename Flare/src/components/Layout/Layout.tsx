@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { fetchData, searchArticles } from "../../api";
 import Articles from "./articles";
 import Header from "./Header/Header";
+import Footer from "./Footer/Footer";
 
 interface Article {
   id: number;
   title: string;
   content: string;
+  url: string;
 }
 
 const Layout: React.FC = () => {
@@ -83,6 +85,7 @@ const Layout: React.FC = () => {
         </button>
       </div>
       <Articles articles={articles} />
+      <Footer />
     </div>
   );
 };

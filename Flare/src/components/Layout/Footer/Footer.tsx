@@ -1,8 +1,8 @@
 const Footer = () => {
   return (
-    <footer>
-        Footer
-    </footer>
+    <footer style={{ backgroundColor: 'green', color: 'white', padding: '20px', textAlign: 'center' }}>
+        &copy; {new Date().getFullYear()} Flare. All rights reserved.
+      </footer>
   )
 }
 

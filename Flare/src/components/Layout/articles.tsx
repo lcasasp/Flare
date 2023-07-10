@@ -4,6 +4,7 @@ interface Article {
   id: number;
   title: string;
   content: string;
+  url: string;
 }
 
 interface ArticlesProps {
@@ -15,10 +16,12 @@ const Articles: React.FC<ArticlesProps> = ({ articles }) => {
     <div>
       <h2 style={{display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '20px'}}><b>News Articles</b></h2>
       {articles.length > 0 ? (
-        <ul>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
           {articles.map((article) => (
-            <li key={article.id}>
-              <h3>{article.title}</h3>
+            <li key={article.id} style={{ border: '1px solid gray', borderRadius: '4px', padding: '10px', marginBottom: '10px' }}>
+              <a href={article.url} target='_blank' rel='noreferrer noopener' style={{ textDecoration: 'underline', color: 'black' }} >
+                <h3>{article.title}</h3>
+              </a>
               <p>{article.content}</p>
             </li>
           ))}
