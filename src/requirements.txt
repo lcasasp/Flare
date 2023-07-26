@@ -15,3 +15,4 @@ newsapi-python
 elasticsearch
 news-please
 flask-cors
+nltk

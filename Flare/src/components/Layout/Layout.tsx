@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchData, searchArticles } from "../../api";
+import { searchArticles } from "../../api";
 import Articles from "./articles";
 import Header from "./Header/Header";
 import Footer from "./Footer/Footer";
@@ -9,42 +9,38 @@ interface Article {
   title: string;
   content: string;
   url: string;
+  published_at: string
 }
 
 const Layout: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("Energy Climate");
   const [articles, setArticles] = useState<Article[]>([]);
 
   useEffect(() => {
-    console.log("useEffect triggered");
-    const fetchArticlesData = async () => {
-      try {
-        const response = await fetchData();
-        const articlesData = response?.news.filter(
-          (article: { title: null; content: null }) =>
-            article.title !== null && article.content !== null
-        ); // Filter articles with non-null title and content
-        setArticles(articlesData);
-      } catch (error) {
-        console.error("Error fetching articles:", error);
-      }
-    };
-
-    fetchArticlesData();
-  }, []);
+    handleSearch();
+  }, [searchTerm]);
 
   const handleSearch = async () => {
     try {
-      const response = await searchArticles(searchTerm); // Use the fetchData function from api.ts
-      console.log(response);
+      const response = await searchArticles(searchTerm);
+      console.log("Succesfully queried for: " + searchTerm);
       const articlesData = response?.news.filter(
         (article: { title: null; content: null }) =>
           article.title !== null && article.content !== null
-      ); // Filter articles with non-null title and content
+      );
       setArticles(articlesData);
     } catch (error) {
       console.error("Error querying articles:", error);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleButtonClick = () => {
+    setSearchTerm(inputValue);
   };
 
   return (
@@ -60,19 +56,19 @@ const Layout: React.FC = () => {
       >
         <input
           type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={inputValue}
+          onChange={handleInputChange}
           placeholder="Enter search term"
           style={{
             padding: '10px',
             border: '1px solid green',
             borderRadius: '4px',
             marginRight: '10px',
-            width: '300px', // Adjust the width as per your preference
+            width: '300px',
           }}
         />
         <button
-          onClick={handleSearch}
+          onClick={handleButtonClick}
           style={{
             padding: "10px 20px",
             backgroundColor: "green",

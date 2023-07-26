@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 # Load environment variables from .env file
 load_dotenv()
 from elasticsearch import Elasticsearch
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -94,23 +93,48 @@ def index_articles():
     index_name = "articles"
     if es.indices.exists(index=index_name):
         es.indices.delete(index=index_name)
-    if not es.indices.exists(index=index_name):
-        es.indices.create(index=index_name)
 
     # Define the mapping for your data to be indexed
     mapping = {
-        "properties": {
-            "source_domain": {"type": "keyword"},
-            "authors": {"type": "keyword"},
-            "title": {"type": "keyword"},
-            "description": {"type": "text"},
-            #Note, URL not referenced for indexing, and should be returned
-            # AFTER search query as result, not useful for query.
-            "date": {"type": "date_nanos"},
-            "content": {"type": "text"}
+        "settings": {
+            "analysis": {
+                "analyzer": {
+                    "english_content_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "standard",
+                        "filter": [
+                            "lowercase",
+                            "english_stop",
+                            "english_stemmer"
+                        ]
+                    }
+                },
+                "filter": {
+                    "english_stop": {
+                        "type": "stop",
+                        "stopwords": "_english_"
+                    },
+                    "english_stemmer": {
+                        "type": "stemmer",
+                        "language": "english"
+                    }
+                }
+            }
+        },
+        "mappings": {
+            "properties": {
+                "source_domain": {"type": "keyword"},
+                "authors": {"type": "keyword"},
+                "title": {"type": "text", "analyzer": "english_content_analyzer"},
+                "description": {"type": "text", "analyzer": "english_content_analyzer"},
+                "date": {"type": "date_nanos"},
+                "content": {"type": "text", "analyzer": "english_content_analyzer"}
+            }
         }
     }
-    es.indices.put_mapping(body=mapping, index=index_name)
+
+    if not es.indices.exists(index=index_name):
+        es.indices.create(index=index_name, body=mapping)
 
     for article in News.query.all():
         # Create a document to index
@@ -217,7 +241,7 @@ def query():
         "match": {
             "content": search_query,
         }
-    }
+    } 
     # Execute the search query
     es_result = es.search(index="articles", query=query)
     article_ids = [hit['_source']['title'] for hit in es_result['hits']['hits']]
