@@ -155,7 +155,7 @@ def index_articles():
 
 @app.route("/addurls")
 def addurls():
-    scrape_google_scholar_metadata()
+    # scrape_google_scholar_metadata()
     addNewsUrl()
     return success_response({"urls": [c.serialize() for c in Urls.query.all()]})
 
