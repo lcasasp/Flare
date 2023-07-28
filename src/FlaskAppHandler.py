@@ -58,10 +58,25 @@ class FlaskAppHandler:
             search_query = request.json['search_query']
             # Note, to change the query parameters, change the query dictionary.
             query = {
-                "match": {
-                    "content": search_query,
+                "function_score": {
+                    "query": {
+                        "match": {
+                            "content": search_query
+                        },
+                    },
+                    "functions": [
+                        {
+                            "exp": {
+                                "date": {
+                                    "scale": "30d",
+                                    "decay": 0.5
+                                }
+                            }
+                        }
+                    ]
                 }
-            } 
+            }
+
             # Execute the search query
             es_result = es.search(index="articles", query=query)
             article_ids = [hit['_source']['title'] for hit in es_result['hits']['hits']]

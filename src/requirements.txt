@@ -16,3 +16,4 @@ elasticsearch
 news-please
 flask-cors
 nltk
+python-dotenv
