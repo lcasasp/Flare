@@ -3,7 +3,7 @@ import concurrent.futures
 from newsplease import NewsPlease
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db import Urls, db
+from models import Urls, db
 from app import app
 import requests
 from datetime import datetime
