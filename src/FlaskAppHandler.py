@@ -60,15 +60,32 @@ class FlaskAppHandler:
             query = {
                 "function_score": {
                     "query": {
-                        "match": {
-                            "content": search_query
-                        },
+                        "bool": {
+                            "should": [
+                                {
+                                    "match": {
+                                        "content": {
+                                            "query": search_query,
+                                            "fuzziness": "AUTO"
+                                        }
+                                    }
+                                },
+                                {
+                                    "fuzzy": {
+                                        "content": {
+                                            "value": search_query,
+                                            "fuzziness": 2
+                                        }
+                                    }
+                                }
+                            ]
+                        }
                     },
                     "functions": [
                         {
                             "exp": {
                                 "date": {
-                                    "scale": "30d",
+                                    "scale": "5d",
                                     "decay": 0.5
                                 }
                             }
