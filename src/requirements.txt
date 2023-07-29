@@ -13,7 +13,6 @@ urllib3==1.26.12
 Werkzeug==2.2.2
 newsapi-python
 elasticsearch
-news-please
 flask-cors
 nltk
 python-dotenv

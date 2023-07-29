@@ -22,7 +22,7 @@ const Articles: React.FC<ArticlesProps> = ({ articles }) => {
             <li key={article.id} style={{ border: '1px solid gray', borderRadius: '4px', padding: '10px', marginBottom: '10px' }}>
               <a href={article.url} target='_blank' rel='noreferrer noopener' style={{ textDecoration: 'underline', color: 'black' }} >
                 <h3>{article.title}</h3>
-                <p>Published At: {new Date(article.date).toLocaleString()}</p>
+                {article.date && <p>Published At: {new Date(article.date).toLocaleString()}</p>}
               </a>
               <p>{article.content}</p>
             </li>
@@ -34,5 +34,6 @@ const Articles: React.FC<ArticlesProps> = ({ articles }) => {
     </div>
   );
 };
+
 
 export default Articles;

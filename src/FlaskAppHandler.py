@@ -23,16 +23,17 @@ class FlaskAppHandler:
                 if db.session.query(News).filter_by(url=article_data['url']).first():
                     print(f"Article with URL {article_data['url']} already exists in database.")
                     continue
+                if db.session.query(News).filter_by(title=article_data['title']).first():
+                    print(f"Article with title {article_data['title']} already exists in database.")
+                    continue
                 
                 # Create new article if it doesn't exist in the database
                 article = News(
-                    source_domain=article_data['source_domain'],
                     authors=', '.join(article_data.get('authors', [])),
-                    title=article_data['title'],
+                    title=article_data['title'] ,
                     url=article_data['url'],
-                    imageUrl=article_data['image_url'],
-                    date= datetime.fromisoformat(article_data['date_publish']) if article_data['date_publish'] is not None else None,
-                    content=article_data['maintext']
+                    date= datetime.fromisoformat(article_data['publish_date']) if article_data['publish_date'] else None,
+                    content=article_data['text']
                 )
                 db.session.add(article)
             db.session.commit()

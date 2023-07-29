@@ -74,7 +74,6 @@ def index_articles(es):
     for article in News.query.all():
         # Create a document to index
         doc = {
-            "source": article.source_domain,
             "authors": article.authors,
             "title": article.title,
             "date": article.date,

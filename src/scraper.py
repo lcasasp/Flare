@@ -1,6 +1,6 @@
 import json
 import concurrent.futures
-from newsplease import NewsPlease
+from newspaper import Article
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Urls, db
@@ -13,27 +13,28 @@ class DateTimeEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()
+
         return super().default(o)
 
 session = requests.Session()
 
-#Efficiency: 319 articles / 482   
-#Time: 531.5 seconds
 def scrape_url(url):
     try:
         response = session.head(url.url)
-        content_type = response.headers.get('Content-Type', '')
 
-        if 'text/html' not in content_type:
-            print(f"Skipping non-HTML URL: {url.url}")
-            return None
+        article = Article(url.url)
+        article.download()
+        article.parse()
 
-        article = NewsPlease.from_url(url.url)
-        if article:
-            return article.get_dict()
-        else:
-            print(f"NewsPlease could not extract data from URL: {url.url}")
-            return None
+        article_data = {
+            "authors": article.authors,
+            "title": article.title,
+            "publish_date": article.publish_date.isoformat() if article.publish_date else None,
+            "text": article.text,
+            "url": url.url
+        }
+
+        return article_data
     except Exception as e:
         print(f"Could not scrape URL {url.url}: {e}")
         return None
@@ -62,7 +63,6 @@ def scrape_all_urls_and_write_json():
 
     with open('results.json', 'w') as f:
          json.dump(results, f, cls=DateTimeEncoder, indent=4)
-
 
 if __name__ == "__main__":
     scrape_all_urls_and_write_json()
