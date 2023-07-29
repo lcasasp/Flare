@@ -63,17 +63,17 @@ class FlaskAppHandler:
                         "bool": {
                             "should": [
                                 {
-                                    "match": {
+                                    "match_phrase": {
                                         "content": {
                                             "query": search_query,
-                                            "fuzziness": "AUTO"
+                                            "boost": 2
                                         }
                                     }
                                 },
                                 {
-                                    "fuzzy": {
+                                    "match": {
                                         "content": {
-                                            "value": search_query,
+                                            "query": search_query,
                                             "fuzziness": 2
                                         }
                                     }
