@@ -42,7 +42,7 @@ class FlaskAppHandler:
 
         @self.app.route("/addurls")
         def addurls():
-            # scrape_google_scholar_metadata(self)
+            scrape_google_scholar_metadata(self)
             addNewsUrl(self)
             return success_response({"urls": [c.serialize() for c in Urls.query.all()]})
 
@@ -86,7 +86,7 @@ class FlaskAppHandler:
                         {
                             "exp": {
                                 "date": {
-                                    "scale": "5d",
+                                    "scale": "10d",
                                     "decay": 0.5
                                 }
                             }

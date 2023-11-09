@@ -94,9 +94,11 @@ def scrape_google_scholar_metadata(self):
     for page in range(constants.GOOGLE_SCHOLAR_PAGE_DEPTH):
         query_url = f"{base_url}/scholar?q=energy 'climate change'&start={page*10}&scisbd=1"
         response = requests.get(query_url)
+        print(response.content)
         soup = BeautifulSoup(response.content, "html.parser")
 
         results = soup.find_all("div", class_="gs_r")
+        print(results)
 
         for result in results:
             # Extract URL
@@ -108,6 +110,7 @@ def scrape_google_scholar_metadata(self):
                 metadata.append({
                     "url": url,
                 })
+        print(metadata)
 
     for url in metadata:
         # check if an article with the same URL already exists
@@ -131,7 +134,7 @@ def addNewsUrl(self):
     pages = data['totalResults'] // 100 + 1
     if pages > constants.NEWS_API_PAGE_DEPTH:
         pages = constants.NEWS_API_PAGE_DEPTH
-    for page in range(1, pages):
+    for page in range(1, pages+1):
         data = newsapi.get_everything(q=keys,
                                 language='en',
                                 sort_by='popularity',
