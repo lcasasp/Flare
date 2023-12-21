@@ -134,7 +134,7 @@ def addNewsUrl(self):
     pages = data['totalResults'] // 100 + 1
     if pages > constants.NEWS_API_PAGE_DEPTH:
         pages = constants.NEWS_API_PAGE_DEPTH
-    for page in range(1, pages+1):
+    for page in range(5, pages+3):
         data = newsapi.get_everything(q=keys,
                                 language='en',
                                 sort_by='popularity',
