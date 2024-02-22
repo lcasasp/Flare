@@ -16,3 +16,4 @@ elasticsearch
 flask-cors
 nltk
 python-dotenv
+newspaper3k
